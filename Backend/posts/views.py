@@ -5,6 +5,8 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Post, Like, Comment, CommentLike, Bookmark
 from .serializers import PostSerializer, CommentSerializer
+from rest_framework import generics, permissions
+
 
 
 class FeedView(generics.ListAPIView):
@@ -40,11 +42,6 @@ class PostCreateView(APIView):
             status=201
         )
 
-
-class PostDetailView(generics.RetrieveDestroyAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class LikeView(APIView):
@@ -112,3 +109,16 @@ class SearchView(generics.ListAPIView):
         if not query:
             return Post.objects.none()
         return Post.objects.filter(user__username__icontains=query).select_related("user")
+    
+class IsAuthor(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.user_id == request.user.id
+
+class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+
+    def get_permissions(self):
+        if self.request.method in ("PATCH", "PUT", "DELETE"):
+            return [permissions.IsAuthenticated(), IsAuthor()]
+        return [permissions.IsAuthenticatedOrReadOnly()]

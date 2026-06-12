@@ -10,6 +10,9 @@ import random
 import string
 from django.core.cache import cache
 from django.contrib.auth.hashers import make_password
+from rest_framework import generics, permissions
+from rest_framework.exceptions import PermissionDenied
+
 
 
 class PasswordResetRequestView(APIView):
@@ -118,9 +121,12 @@ class UpdateProfileView(APIView):
             user.display_name = request.data["display_name"]
         if "bio" in request.data:
             user.bio = request.data["bio"]
+        if "email" in request.data:
+            user.email = request.data["email"]
         if "avatar" in request.FILES:
             user.avatar = request.FILES["avatar"]
-        if "newEmail" in request.Files:
-            user.newEmail = request.data["newEmail"]
         user.save()
         return Response(UserSerializer(user, context={"request": request}).data)
+
+
+

@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "id", "username", "display_name", "avatar", "bio",
+            "id", "username", "display_name", "avatar", "bio", "email",
             "is_verified", "followers_count", "following_count",
             "likes_count", "posts_count", "is_following",
         ]

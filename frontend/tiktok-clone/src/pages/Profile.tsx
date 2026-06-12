@@ -197,6 +197,8 @@ const Profile: React.FC = () => {
   const [following, setFollowing] = useState(false);
   const [selected, setSelected] = useState<Post | null>(null);
   const [showEdit, setShowEdit] = useState(false);
+  const [editingPost, setEditingPost] = useState(false);
+  const [editDescription, setEditDescription] = useState("");
 
   useEffect(() => {
     const id = userId || me?.id;
@@ -302,6 +304,11 @@ const Profile: React.FC = () => {
           <p style={{ color: "white", fontWeight: 700, fontSize: 18, marginBottom: 4 }}>
             {p?.display_name || p?.username}
           </p>
+          {isOwn && p?.email && (
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, marginBottom: 4 }}>
+              {p.email}
+            </p>
+          )}
 
           {/* Stats */}
           <div style={{ display: "flex", gap: 28, margin: "12px 0" }}>
@@ -428,7 +435,7 @@ const Profile: React.FC = () => {
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 2, marginTop: 2 }}>
             {posts.map(post => (
-              <button key={post.id} onClick={() => setSelected(post)} style={{
+              <button key={post.id} onClick={() => { setSelected(post); setEditingPost(false); setEditDescription(post.description); }} style={{
                 position: "relative", aspectRatio: "9/16",
                 overflow: "hidden", backgroundColor: "#1a1a1a",
                 border: "none", cursor: "pointer", padding: 0,
@@ -468,12 +475,75 @@ const Profile: React.FC = () => {
           <div className="no-scroll" style={{ flex: 1, overflowY: "auto" }} onClick={e => e.stopPropagation()}>
             <img src={selected.image_url} alt="" style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover" }} />
             <div style={{ padding: 16 }}>
-              <p style={{ color: "white", fontSize: 14, lineHeight: 1.5, marginBottom: 12 }}>
-                {selected.description}{" "}
-                {selected.hashtags.map(t => (
-                  <span key={t} style={{ color: "#69c9d0", fontWeight: 600 }}>#{t} </span>
-                ))}
-              </p>
+              {editingPost ? (
+                <div style={{ marginBottom: 12 }}>
+                  <textarea
+                    value={editDescription}
+                    onChange={e => setEditDescription(e.target.value)}
+                    rows={3}
+                    style={{
+                      width: "100%", padding: "10px 12px",
+                      backgroundColor: "rgba(255,255,255,0.08)",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      borderRadius: 8, color: "white", fontSize: 14,
+                      outline: "none", fontFamily: "inherit", resize: "none",
+                    }}
+                  />
+                  <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const { data } = await api.patch(`/posts/${selected.id}/`, { description: editDescription });
+                          setSelected(data);
+                          setPosts(prev => prev.map(p => p.id === data.id ? { ...p, description: data.description } : p));
+                          setEditingPost(false);
+                        } catch {
+                          alert("Opslaan mislukt");
+                        }
+                      }}
+                      style={{
+                        flex: 1, height: 36, backgroundColor: "#fe2c55", border: "none",
+                        borderRadius: 6, color: "white", fontSize: 13, fontWeight: 600,
+                        cursor: "pointer", fontFamily: "inherit",
+                      }}
+                    >
+                      Opslaan
+                    </button>
+                    <button
+                      onClick={() => { setEditingPost(false); setEditDescription(selected.description); }}
+                      style={{
+                        flex: 1, height: 36, backgroundColor: "rgba(255,255,255,0.1)",
+                        border: "1px solid rgba(255,255,255,0.2)", borderRadius: 6,
+                        color: "white", fontSize: 13, fontWeight: 600,
+                        cursor: "pointer", fontFamily: "inherit",
+                      }}
+                    >
+                      Annuleren
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 12 }}>
+                  <p style={{ color: "white", fontSize: 14, lineHeight: 1.5, flex: 1 }}>
+                    {selected.description}{" "}
+                    {selected.hashtags.map(t => (
+                      <span key={t} style={{ color: "#69c9d0", fontWeight: 600 }}>#{t} </span>
+                    ))}
+                  </p>
+                  {isOwn && (
+                    <button
+                      onClick={() => setEditingPost(true)}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.6)", flexShrink: 0 }}
+                      aria-label="Bewerken"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              )}
               <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="#fe2c55">

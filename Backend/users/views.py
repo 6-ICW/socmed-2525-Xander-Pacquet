@@ -120,5 +120,7 @@ class UpdateProfileView(APIView):
             user.bio = request.data["bio"]
         if "avatar" in request.FILES:
             user.avatar = request.FILES["avatar"]
+        if "newEmail" in request.Files:
+            user.newEmail = request.data["newEmail"]
         user.save()
         return Response(UserSerializer(user, context={"request": request}).data)

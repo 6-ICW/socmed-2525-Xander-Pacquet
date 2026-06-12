@@ -20,6 +20,7 @@ const EditProfileModal: React.FC<{
 }> = ({ profile, onClose, onSave }) => {
   const [displayName, setDisplayName] = useState(profile.display_name || "");
   const [bio, setBio] = useState(profile.bio || "");
+  const [email,setEmail] = useState(profile.email||"")
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(profile.avatar);
   const [loading, setLoading] = useState(false);
@@ -40,6 +41,7 @@ const EditProfileModal: React.FC<{
       const fd = new FormData();
       fd.append("display_name", displayName);
       fd.append("bio", bio);
+      fd.append("email",email)
       if (avatarFile) fd.append("avatar", avatarFile);
       const { data } = await api.patch("/users/me/update/", fd, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -118,6 +120,24 @@ const EditProfileModal: React.FC<{
             <input
               value={displayName}
               onChange={e => setDisplayName(e.target.value)}
+              maxLength={30}
+              style={{
+                width: "100%", padding: "12px 14px",
+                backgroundColor: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                borderRadius: 8, color: "white", fontSize: 14,
+                outline: "none", fontFamily: "inherit",
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>
+              EMAIL
+            </label>
+            <input
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               maxLength={30}
               style={{
                 width: "100%", padding: "12px 14px",
@@ -336,14 +356,21 @@ const Profile: React.FC = () => {
               }}>
                 {following ? "Volgend" : "Volgen"}
               </button>
-              <button onClick={() => navigate("/inbox")} style={{
-                flex: 1, height: 36,
-                backgroundColor: "rgba(255,255,255,0.1)",
-                border: "1px solid rgba(255,255,255,0.2)",
-                borderRadius: 6, color: "white", fontSize: 13,
-                fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-              }}>
-                Bericht
+              <button onClick={async () => {
+                  try {
+                    const { data } = await api.post("/inbox/start/", { user_id: profile.id });
+                    navigate("/inbox", { state: { openConvo: data } });
+                  } catch {
+                    navigate("/inbox");
+                  }
+                }} style={{
+                  flex: 1, height: 36,
+                  backgroundColor: "rgba(255,255,255,0.1)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  borderRadius: 6, color: "white", fontSize: 13,
+                  fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                }}>
+                  Bericht
               </button>
               <button style={{
                 width: 36, height: 36,
@@ -408,7 +435,7 @@ const Profile: React.FC = () => {
               }}>
                 <img src={post.image_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 <div style={{ position: "absolute", bottom: 6, left: 6, display: "flex", alignItems: "center", gap: 4 }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="white">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                   </svg>
                   <span style={{ color: "white", fontSize: 11, fontWeight: 600, textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}>

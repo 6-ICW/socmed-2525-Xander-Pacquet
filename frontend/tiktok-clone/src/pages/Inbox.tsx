@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 import { Conversation, Message } from "../types";
 import BottomNav from "../components/BottemNav";
 import { useAuth } from "../App";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const timeAgo = (iso: string) => {
   if (!iso) return "";
@@ -33,7 +33,7 @@ const ChatView: React.FC<{ convo: Conversation; onBack: () => void }> = ({ convo
 
   // 1. Berichten ophalen uit de Django backend (Paden matchen nu 100% met je Django urls)
   useEffect(() => {
-    api.get(`/conversations/${convo.id}/messages/`)
+    api.get(`/inbox/chats/${convo.id}/messages/`)
       .then(({ data }) => {
         const list = data.results ?? data;
         setMessages(list);
@@ -92,7 +92,7 @@ const ChatView: React.FC<{ convo: Conversation; onBack: () => void }> = ({ convo
 
     try {
       // POST naar jouw Django URL route
-      const { data } = await api.post(`/conversations/${convo.id}/messages/`, { text: typedText });
+      const { data } = await api.post(`/inbox/chats/${convo.id}/messages/`, { text: typedText });
       
       // Update de lijst op een veilige manier
       setMessages(prev =>
@@ -200,14 +200,17 @@ const ChatView: React.FC<{ convo: Conversation; onBack: () => void }> = ({ convo
 
 // ─── Inbox Page ───────────────────────────────────────────────────────────────
 const Inbox: React.FC = () => {
+  const location = useLocation();
   const [convos, setConvos] = useState<Conversation[]>([]);
-  const [active, setActive] = useState<Conversation | null>(null);
+  const [active, setActive] = useState<Conversation | null>(
+    location.state?.openConvo ?? null
+  );
   const [tab, setTab] = useState<"all" | "unread">("all");
   const [loading, setLoading] = useState(true);
 
   // Haal conversaties op via jouw exacte Django route: /conversations/
   useEffect(() => {
-    api.get("/conversations/")
+    api.get("/inbox/conversations/")
       .then(({ data }) => {
         const list = data.results ?? data;
         if (list.length > 0) {

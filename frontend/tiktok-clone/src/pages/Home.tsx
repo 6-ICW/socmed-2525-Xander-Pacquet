@@ -4,6 +4,8 @@ import api from "../api/client";
 import VideoPost from "../components/VideoPost";
 import BottomNav from "../components/BottemNav";
 import { useAuth } from "../App"; // <-- Cruciaal om currentUser te kunnen gebruiken!
+import { useNavigate } from "react-router-dom";
+
 
 type Tab = "following" | "foryou" | "explore";
 
@@ -49,6 +51,7 @@ const Home: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const navigate = useNavigate();
 
   const loadPosts = (t: Tab) => {
     setLoading(true);
@@ -180,6 +183,16 @@ const Home: React.FC = () => {
             </button>
           ))}
         </div>
+        <button onClick={() => navigate("/search")} style={{
+          position: "absolute", right: 16,
+          top: "max(env(safe-area-inset-top), 12px)",
+          background: "none", border: "none", cursor: "pointer",
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
       </div>
 
       {/* Feed overzicht */}

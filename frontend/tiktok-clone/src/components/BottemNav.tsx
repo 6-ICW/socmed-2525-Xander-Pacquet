@@ -32,7 +32,7 @@ const BottomNav: React.FC = () => {
       ),
     },
     {
-      key: "/friends", // Route naar vriendenpagina
+      key: "/search", // Route naar vriendenpagina
       label: "Vrienden",
       icon: (active: boolean) => (
         // Vrienden-icoon

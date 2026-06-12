@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Inbox from "./pages/Inbox";
 import Profile from "./pages/Profile";
 import Upload from "./pages/Upload"
+import Search from "./pages/Search";
 import ForgotPassword from "./pages/ForgotPassword";
 
 // ─── Auth Context ─────────────────────────────────────────────────────────────
@@ -108,9 +109,12 @@ const App = () => (
         <Route path="/profile/:userId" element={<Protected><Profile /></Protected>} />
         <Route path="/upload" element={<Protected><Upload /></Protected>} />
         <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/search" element={<Protected><Search /></Protected>} />    
       </Routes>
     </BrowserRouter>
   </AuthProvider>
 );
 
 export default App;
+
+// binnen <Routes>:

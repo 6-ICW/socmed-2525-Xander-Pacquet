@@ -103,3 +103,12 @@ class CommentLikeView(APIView):
         if not created:
             cl.delete()
         return Response({"liked": created})
+    
+class SearchView(generics.ListAPIView):
+    serializer_class = PostSerializer
+
+    def get_queryset(self):
+        query = self.request.query_params.get("q", "").strip()
+        if not query:
+            return Post.objects.none()
+        return Post.objects.filter(user__username__icontains=query).select_related("user")
